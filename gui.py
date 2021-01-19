@@ -1,5 +1,4 @@
 from tkinter import *
-
 import requests
 import shutil
 from requests import Request, Session
@@ -32,7 +31,7 @@ session.headers.update(headers)
 # Initializing Coinmarket Class
 
 class coinmarket:
-    def __init__(self, ctr=0, coinname="blank", coinprice="blank"):
+    def __init__(self, ctr=0, coinname="blank", coinprice="blank",change24ho = 0.00):
         try:
             # Grabs API Response by parsing URL and parameters
             response = session.get(url, params=parameters)
@@ -94,6 +93,33 @@ def changecoin():
         ctr = 0
     print(ctr)
 
+def autoloop(root, cls, name, img, price):
+    try:
+
+        response = session.get(url, params=parameters)
+        data = json.loads(response.text)
+        i = cls.get_ctr()
+        i += 1
+        print(i)
+        if (i < len(data)):
+            cls.set_ctr(i)
+        else:
+            cls.set_ctr(0)
+            i = 0
+        cls.set_coinname(data[i]['name'])
+        cls.set_coinprice(data[i]['current_price'])
+        coinid = data[i]["id"]
+        print(cls.get_coinprice())
+        print(cls.get_coinname())
+        coinimage = PhotoImage(file='.\coinimg\\' + coinid + ".png")
+        name.config(text=cls.get_coinname())
+        img.config(image=coinimage)
+        img.image = coinimage
+        price.config(text=cls.get_coinprice())
+
+    except (ConnectionError, Timeout, TooManyRedirects) as e:
+        print(e)
+    root.after(10000, autoloop, root, cls, name, img, price)
 
 def refreshprice(cls, name, img, price):
     try:
@@ -123,6 +149,7 @@ def refreshprice(cls, name, img, price):
         print(e)
 
 
+
 # Main window for tkinter
 def main():
     window = Tk()
@@ -142,8 +169,9 @@ def main():
     coinpricew = tk.Label(text=test.get_coinprice())
     coinpricew.pack()
     nextcoin = tk.Button(text="Next Coin", command=lambda: refreshprice(test, coinnamew, w1, coinpricew)).pack()
+    autoloop(window, test, coinnamew, w1, coinpricew)
     window.mainloop()
-    # window.attributes('-fullscreen', True)
+
 
 
 ##Loops the window to prevent the window from just "flashing once"
